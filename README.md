@@ -5,8 +5,8 @@
 ### Multimedia Representation with 2D Gaussian Splatting
 
 [Jose Leandro Machaca Soloaga](https://github.com/JLeandroJM) &nbsp;·&nbsp;
-Mauro Ianfranco Bobadilla Castillo &nbsp;·&nbsp;
-Eric Biagioli
+[Mauro Ianfranco Bobadilla Castillo](https://github.com/MauBC) &nbsp;·&nbsp;
+[Eric Biagioli](https://github.com/ericbiagioli)
 
 **Universidad de Ingeniería y Tecnología (UTEC)**
 
@@ -17,10 +17,9 @@ Eric Biagioli
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)](https://www.python.org)
 [![PyTorch](https://img.shields.io/badge/PyTorch-CUDA%2012.6-ee4c2c?logo=pytorch&logoColor=white)](https://pytorch.org)
 
-<!-- TEASER — drop assets/teaser.gif here, then delete these two comment lines. See assets/README.md.
-<img src="assets/teaser.gif" width="100%" alt="Original clip, MBB-GS reconstruction and amplified difference, side by side">
-<p><i>Left: original. Middle: reconstructed from Chebyshev coefficients. Right: amplified difference.</i></p>
--->
+<img src="assets/top_gaussianas.png" width="100%" alt="Four panels: the original clip, the full 160k-Gaussian reconstruction, and renders keeping only the top 20k and top 80k Gaussians by visual importance">
+
+<p><i>The original clip and its reconstruction from Chebyshev coefficients are hard to tell apart. Below, the same model rendered with only its most important Gaussians: the representation is explicit enough to ask which primitives carry the image.</i></p>
 
 </div>
 
@@ -59,11 +58,14 @@ inspectable set of coefficients.
 
 ## Method
 
-<!-- ARCHITECTURE FIGURE — drop assets/architecture.png here, then delete these three comment lines. See assets/README.md.
 <div align="center">
-<img src="assets/architecture.png" width="90%" alt="MBB-GS pipeline: Chebyshev coefficients evaluated at time t produce a set of 2D Gaussians, rasterised by a differentiable CUDA kernel">
+<img src="assets/pipeline.png" width="95%" alt="Training pipeline: video, model, render, frame, loss, with backpropagation returning to the model">
 </div>
--->
+
+Training is a single differentiable loop. A frame is rendered from the model,
+compared against the original, and the gradient flows back through the
+rasteriser into the polynomial coefficients. There is no network anywhere in
+that loop — the coefficients *are* the model.
 
 A single set of $N$ Gaussians is kept for the entire clip. Nothing is created or
 destroyed between frames. Each attribute $p$ of each Gaussian $i$ — position,
@@ -85,6 +87,10 @@ do not. A production configuration uses degrees 100 / 80 / 30 / 12 / 6 / 4 for
 Chebyshev is the main basis: it is bounded on $[-1, 1]$ and well conditioned at
 high degree, which matters at those degrees. A monomial basis is kept only for
 the ablation that motivates the choice, and to load older checkpoints.
+
+Because every primitive owns an explicit trajectory $\mu_i(t)$, the model can
+be inspected directly: which Gaussians move, how far, and when. The scripts in
+`scripts/visualization/` draw exactly that.
 
 For the details, see
 [Model and Temporal Representation](wiki/Model-and-Temporal-Representation.md)
@@ -122,6 +128,14 @@ falls monotonically, so the uniform average is the right choice:
 | 2 | 29.77 | 27.43 | 0.942 | 0.099 |
 | 4 | 21.19 | 16.84 | 0.859 | 0.336 |
 | 8 | 14.70 | 13.37 | 0.517 | 0.821 |
+
+**Capacity** — the same frame reconstructed with a growing population. At low
+counts the Gaussians cannot cover the frame and the render breaks into speckle;
+the coverage closes progressively, and at 150k the reconstruction is clean:
+
+<div align="center">
+<img src="assets/reconstruccion_n_gaussianas.png" width="95%" alt="Six reconstructions of the same frame at 5k, 10k, 20k, 40k, 60k and 150k Gaussians, progressively sharper">
+</div>
 
 **Model reduction** — from 150k Gaussians on 750 frames at 720p, adaptive
 pruning to 120k Gaussians followed by UINT16 quantisation takes the model from
@@ -510,7 +524,8 @@ If you use this code, please cite:
   title  = {MBB-GS Moving Gaussians: Representacion multimedia mediante
             Gaussian Splatting},
   author = {Machaca Soloaga, Jose Leandro and
-            Bobadilla Castillo, Mauro Ianfranco},
+            Bobadilla Castillo, Mauro Ianfranco and
+            Biagioli, Eric},
   school = {Universidad de Ingenieria y Tecnologia (UTEC)},
   year   = {2026},
   type   = {Trabajo de investigacion},
