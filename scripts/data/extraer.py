@@ -1,5 +1,4 @@
 
-import os
 from pathlib import Path
 
 import cv2
@@ -52,7 +51,7 @@ def obtener_raiz_proyecto():
         tesis_2dgs_video/
     """
     ruta_script = Path(__file__).resolve()
-    return ruta_script.parent.parent
+    return ruta_script.parents[2]
 
 
 def obtener_rutas(video_nombre):
@@ -126,7 +125,7 @@ def extraer_frames():
             "No se encontro el video.\n"
             f"Ruta esperada:\n{video_path}\n\n"
             "Coloca el video dentro de:\n"
-            f"{raiz / 'clips' / 'videos'}"
+            f"{raiz / 'data' / 'videos'}"
         )
 
     carpeta_salida.mkdir(parents=True, exist_ok=True)

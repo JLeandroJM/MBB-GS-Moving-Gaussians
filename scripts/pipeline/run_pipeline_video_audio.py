@@ -21,12 +21,15 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import math
+import platform
 import re
 import shutil
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parents[2]
@@ -94,6 +97,113 @@ def require_program(name):
     if not found:
         raise RuntimeError(f"No se encontró {name} en PATH")
     return found
+
+
+def probe_command(cmd):
+    try:
+        result = subprocess.run(
+            [str(x) for x in cmd],
+            cwd=RAIZ,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            check=False,
+        )
+    except Exception:
+        return None
+
+    if result.returncode != 0:
+        return None
+
+    text = (result.stdout or "").strip()
+    return text or None
+
+
+def collect_environment(config_path):
+    config_path = Path(config_path)
+
+    git_commit = probe_command(["git", "rev-parse", "HEAD"])
+    git_status = probe_command(["git", "status", "--porcelain"])
+
+    info = {
+        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+        "git_commit": git_commit,
+        "git_dirty": bool(git_status) if git_status is not None else None,
+        "python_version": platform.python_version(),
+        "python_executable": str(Path(sys.executable).resolve()),
+        "platform": platform.platform(),
+        "pipeline_config": str(config_path.resolve()),
+        "pipeline_config_sha256": hashlib.sha256(config_path.read_bytes()).hexdigest(),
+        "cuda_home": str(
+            Path(shutil.which("nvcc")).resolve().parents[1]
+        ) if shutil.which("nvcc") else None,
+        "nvcc": None,
+        "ffmpeg": None,
+        "torch_version": None,
+        "torch_cuda_version": None,
+        "cuda_available": False,
+        "gpu": None,
+    }
+
+    nvcc = shutil.which("nvcc")
+    if nvcc:
+        nvcc_text = probe_command([nvcc, "--version"])
+        if nvcc_text:
+            for line in nvcc_text.splitlines():
+                if "release" in line.lower():
+                    info["nvcc"] = line.strip()
+                    break
+            if info["nvcc"] is None:
+                info["nvcc"] = nvcc_text.splitlines()[0]
+
+    ffmpeg = shutil.which("ffmpeg")
+    if ffmpeg:
+        ffmpeg_text = probe_command([ffmpeg, "-version"])
+        if ffmpeg_text:
+            info["ffmpeg"] = ffmpeg_text.splitlines()[0]
+
+    try:
+        import torch
+
+        info["torch_version"] = torch.__version__
+        info["torch_cuda_version"] = torch.version.cuda
+        info["cuda_available"] = bool(torch.cuda.is_available())
+
+        if info["cuda_available"]:
+            info["gpu"] = torch.cuda.get_device_name(0)
+    except Exception as exc:
+        info["torch_error"] = str(exc)
+
+    return info
+
+
+def save_environment(pipeline_out, environment):
+    save_json(pipeline_out / "environment.json", environment)
+
+    lines = [
+        "MBB-GS ENVIRONMENT",
+        "=" * 64,
+        f"Timestamp UTC: {environment.get('timestamp_utc')}",
+        f"Git commit: {environment.get('git_commit')}",
+        f"Git dirty: {environment.get('git_dirty')}",
+        f"Python: {environment.get('python_version')}",
+        f"Python executable: {environment.get('python_executable')}",
+        f"PyTorch: {environment.get('torch_version')}",
+        f"PyTorch CUDA: {environment.get('torch_cuda_version')}",
+        f"CUDA available: {environment.get('cuda_available')}",
+        f"GPU: {environment.get('gpu')}",
+        f"CUDA_HOME: {environment.get('cuda_home')}",
+        f"NVCC: {environment.get('nvcc')}",
+        f"FFmpeg: {environment.get('ffmpeg')}",
+        f"Platform: {environment.get('platform')}",
+        f"Pipeline config: {environment.get('pipeline_config')}",
+        f"Config SHA256: {environment.get('pipeline_config_sha256')}",
+    ]
+
+    (pipeline_out / "environment.txt").write_text(
+        "\n".join(lines) + "\n",
+        encoding="utf-8",
+    )
 
 
 def ffprobe_info(ffprobe, video):
@@ -240,12 +350,23 @@ def main():
     clip = str(master.get("nombre_clip", f"{nombre}_clip"))
 
     pipeline_out = RAIZ / "outputs" / "AV_PIPELINE" / nombre
+    limpiar_pipeline = bool(master.get("limpiar_salida_pipeline", True))
+
+    if limpiar_pipeline and pipeline_out.exists():
+        print(f"[pipeline] limpiando salida anterior: {pipeline_out}")
+        shutil.rmtree(pipeline_out)
+
     runtime_dir = pipeline_out / "runtime_configs"
     logs_dir = pipeline_out / "logs"
     quant_dir = pipeline_out / "video_quant"
     final_dir = pipeline_out / "final"
     for d in (runtime_dir, logs_dir, quant_dir, final_dir):
         d.mkdir(parents=True, exist_ok=True)
+
+    shutil.copy2(config_path, runtime_dir / "pipeline_master.json")
+
+    environment = collect_environment(config_path)
+    save_environment(pipeline_out, environment)
 
     print("=" * 64)
     print("PIPELINE AUDIOVISUAL")
@@ -299,6 +420,7 @@ def main():
         "ejecutar_pruning_post": False,
         "guardar_frames_rasterizados": True,
         "sobreescribir_salida": True,
+        "limpiar_salida": True,
     })
     runtime_video = runtime_dir / "video_runtime.json"
     save_json(runtime_video, video_cfg)
@@ -312,6 +434,7 @@ def main():
         "sr": sr,
         "device": device,
         "sobreescribir_salida": True,
+        "limpiar_salida": True,
     })
     runtime_audio = runtime_dir / "audio_runtime.json"
     save_json(runtime_audio, audio_template)
@@ -347,6 +470,7 @@ def main():
         "--max_pct", str(pruning.get("max_pct", 50)),
         "--psnr_min", str(pruning.get("psnr_global_min", 65)),
         "--crear_video_ganador",
+        "--force",
     ])
 
     pruning_dir = video_dir / "binary_pruning"
@@ -449,6 +573,7 @@ def main():
 
     summary = {
         "pipeline": nombre,
+        "environment": environment,
         "fuente_mp4": str(mp4),
         "inicio_segundos": inicio,
         "duracion_segundos": duracion,
@@ -498,6 +623,12 @@ def main():
         "=" * 64,
         f"Pipeline: {nombre}",
         f"Fuente: {mp4}",
+        f"Git commit: {environment.get('git_commit')}",
+        f"Git dirty: {environment.get('git_dirty')}",
+        f"Python: {environment.get('python_version')}",
+        f"PyTorch: {environment.get('torch_version')}",
+        f"CUDA: {environment.get('torch_cuda_version')}",
+        f"GPU: {environment.get('gpu')}",
         f"Frames: {n_frames} a {fps} fps, {H}x{W}",
         f"Pruning ganador: {label}",
         f"Porcentaje eliminado: {pct:.2f}%",

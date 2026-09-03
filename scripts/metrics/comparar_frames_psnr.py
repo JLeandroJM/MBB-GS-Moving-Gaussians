@@ -1,5 +1,6 @@
 import argparse
 import csv
+import math
 from pathlib import Path
 
 import numpy as np
@@ -16,6 +17,64 @@ def calcular_psnr(a, b):
 
     psnr = float(-10.0 * np.log10(mse))
     return psnr, mse, mae
+
+
+def percentil_seguro(valores, q):
+    arr = np.sort(np.asarray(valores, dtype=np.float64))
+
+    if arr.size == 0:
+        raise ValueError("No hay valores para calcular el percentil.")
+
+    posicion = (arr.size - 1) * (float(q) / 100.0)
+    inferior = int(math.floor(posicion))
+    superior = int(math.ceil(posicion))
+
+    if inferior == superior:
+        return float(arr[inferior])
+
+    a = float(arr[inferior])
+    b = float(arr[superior])
+
+    if a == b:
+        return a
+
+    peso = posicion - inferior
+
+    if math.isinf(a) or math.isinf(b):
+        if math.isinf(a) and math.isinf(b):
+            return a
+
+        if math.isinf(b):
+            return b if peso > 0.0 else a
+
+        return a
+
+    return a + (b - a) * peso
+
+
+def resumir_psnr(valores):
+    arr = np.asarray(valores, dtype=np.float64)
+
+    if arr.size == 0:
+        raise ValueError("No hay valores PSNR para resumir.")
+
+    hay_pos_inf = bool(np.isposinf(arr).any())
+    todos_pos_inf = bool(np.isposinf(arr).all())
+
+    if hay_pos_inf:
+        promedio = float("inf")
+        std = 0.0 if todos_pos_inf else float("inf")
+    else:
+        promedio = float(arr.mean())
+        std = float(arr.std())
+
+    return {
+        "promedio": promedio,
+        "min": float(arr.min()),
+        "p5": percentil_seguro(arr, 5.0),
+        "max": float(arr.max()),
+        "std": std,
+    }
 
 
 def main():
@@ -77,7 +136,7 @@ def main():
             mae,
         ])
 
-    psnrs_np = np.asarray(psnrs, dtype=np.float64)
+    resumen = resumir_psnr(psnrs)
     mses_np = np.asarray(mses, dtype=np.float64)
     maes_np = np.asarray(maes, dtype=np.float64)
 
@@ -86,11 +145,11 @@ def main():
     print(f"B: {b_dir}")
     print(f"frames comparados: {n}")
     print("")
-    print(f"PSNR promedio : {psnrs_np.mean():.4f}")
-    print(f"PSNR min      : {psnrs_np.min():.4f}")
-    print(f"PSNR p5       : {np.percentile(psnrs_np, 5):.4f}")
-    print(f"PSNR max      : {psnrs_np.max():.4f}")
-    print(f"PSNR std      : {psnrs_np.std():.4f}")
+    print(f"PSNR promedio : {resumen['promedio']:.4f}")
+    print(f"PSNR min      : {resumen['min']:.4f}")
+    print(f"PSNR p5       : {resumen['p5']:.4f}")
+    print(f"PSNR max      : {resumen['max']:.4f}")
+    print(f"PSNR std      : {resumen['std']:.4f}")
     print("")
     print(f"MSE promedio  : {mses_np.mean():.10f}")
     print(f"MAE promedio  : {maes_np.mean():.10f}")
@@ -102,6 +161,7 @@ def main():
         with open(out, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f)
             writer.writerow(["idx", "frame_a", "frame_b", "psnr", "mse", "mae"])
+
             for row in rows:
                 writer.writerow([
                     row[0],

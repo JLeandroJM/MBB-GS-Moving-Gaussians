@@ -16,6 +16,7 @@ import argparse
 import csv
 import json
 import os
+import shutil
 import sys
 
 import numpy as np
@@ -278,14 +279,13 @@ def _guardar_info_clip(salida, config, clip, n_frames, H, W, seed):
         json.dump(payload, f, indent=2, default=str)
 
 
-def _preparar_carpeta_salida(raiz_outputs, nombre_exp, sobreescribir):
-    """
-    Crea outputs/<nombre_exp>/ con subcarpetas estandar.
-
-    Si la carpeta ya existe y sobreescribir=False, lanza error claro.
-    Si sobreescribir=True, reusa la carpeta (no borra contenidos previos:
-    los archivos nuevos sobrescriben, los viejos quedan).
-    """
+def _preparar_carpeta_salida(
+    raiz_outputs,
+    nombre_exp,
+    sobreescribir,
+    limpiar_salida=False,
+):
+    """Crea la carpeta de salida del experimento."""
     salida = os.path.join(raiz_outputs, nombre_exp)
 
     if os.path.exists(salida) and not sobreescribir:
@@ -293,8 +293,12 @@ def _preparar_carpeta_salida(raiz_outputs, nombre_exp, sobreescribir):
             f"La carpeta de salida ya existe: {salida}\n"
             f"  - cambia 'nombre_experimento' en el config,\n"
             f"  - usa --nombre-experimento NOMBRE para sobrescribirlo por CLI,\n"
-            f"  - o pon \"sobreescribir_salida\": true en el config para reusarla."
+            f"  - o pon \"sobreescribir_salida\": true en el config."
         )
+
+    if os.path.exists(salida) and sobreescribir and limpiar_salida:
+        print(f"[train] limpiando salida anterior: {salida}", flush=True)
+        shutil.rmtree(salida)
 
     for sub in ("frames_renderizados", "checkpoints", "logs"):
         os.makedirs(os.path.join(salida, sub), exist_ok=True)
@@ -459,11 +463,13 @@ def main():
     #     info_clip.json         <- metadata del clip (n_frames, H, W, fps, seed, ...)
     nombre_exp = config["nombre_experimento"]
     sobreescribir_salida = bool(config.get("sobreescribir_salida", False))
+    limpiar_salida = bool(config.get("limpiar_salida", False))
 
     salida = _preparar_carpeta_salida(
         raiz_outputs=os.path.join(raiz, "outputs"),
         nombre_exp=nombre_exp,
         sobreescribir=sobreescribir_salida,
+        limpiar_salida=limpiar_salida,
     )
     salida_frames = os.path.join(salida, "frames_renderizados")
     salida_checkpoints = os.path.join(salida, "checkpoints")

@@ -24,6 +24,7 @@ Uso:
 import argparse
 import csv
 import json
+import shutil
 import sys
 import time
 from pathlib import Path
@@ -244,8 +245,14 @@ def main():
     # === salida ===
     nombre_exp = config["nombre_experimento"]
     salida = RAIZ / "outputs" / "gabor" / nombre_exp
-    if salida.exists() and not bool(config.get("sobreescribir_salida", False)):
+    sobreescribir = bool(config.get("sobreescribir_salida", False))
+    if salida.exists() and not sobreescribir:
         raise FileExistsError(f"La carpeta ya existe: {salida}. Usa sobreescribir_salida=true.")
+
+    if salida.exists() and sobreescribir and bool(config.get("limpiar_salida", False)):
+        print(f"[audio] limpiando salida anterior: {salida}", flush=True)
+        shutil.rmtree(salida)
+
     (salida / "checkpoints").mkdir(parents=True, exist_ok=True)
 
     with open(salida / "config_usada.json", "w", encoding="utf-8") as f:
