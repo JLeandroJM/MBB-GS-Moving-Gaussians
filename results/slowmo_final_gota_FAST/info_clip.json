@@ -1,0 +1,13 @@
+{
+  "clip": "video_final_gota_480x270",
+  "n_frames": 255,
+  "H": 270,
+  "W": 480,
+  "seed": 42,
+  "video_mp4": null,
+  "fps_extraccion": null,
+  "n_frames_extraer": null,
+  "resolucion_extraccion": null,
+  "max_frames": 255,
+  "device": "cuda"
+}

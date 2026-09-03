@@ -1,0 +1,13 @@
+{
+  "clip": "gota_mejorado_s2s4_1080p",
+  "n_frames": 100,
+  "H": 1080,
+  "W": 1920,
+  "seed": 42,
+  "video_mp4": null,
+  "fps_extraccion": null,
+  "n_frames_extraer": null,
+  "resolucion_extraccion": null,
+  "max_frames": 100,
+  "device": "cuda"
+}
