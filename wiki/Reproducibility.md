@@ -12,6 +12,10 @@ Every training writes, alongside its results:
 | `metricas_por_frame.csv` | one row per frame |
 | `logs/log_entrenamiento.csv` | per-epoch losses and timings |
 
+A Gabor audio run writes the same kind of record with `info_audio.json` in place
+of `info_clip.json` and no per-frame CSV; a stereo run splits the log per
+channel.
+
 `config_usada.json` is the important one. It is written before training starts
 and is a verbatim copy of what the run actually used, so a result can never
 disagree with the configuration file it claims to come from — even if the
@@ -60,17 +64,21 @@ loader.
    package versions used on the cluster.
 3. Build the CUDA extension in that environment.
 4. Run `scripts/train.py` with the configuration from `configs/`.
-5. Compare against the `metricas.json` included in this repository for that
-   experiment.
+5. Compare against the `metricas.json` committed under
+   `results/video/<run>/` or `results/audio/<run>/`, where `<run>` is the
+   configuration's `nombre_experimento`.
 
 The lightweight per-experiment records are versioned here precisely so that step
-5 does not require re-running anything.
+5 does not require re-running anything. `results/README.md` lists which runs are
+covered and which ones are only on the Drive.
 
 ## Cluster runs
 
-`jobs/` holds the Slurm scripts used on Khipu, including the partition, GPU
-allocation, memory and time limit of each run. They are the record of how each
-experiment was actually launched, not just how it could be.
+`jobs/video/` and `jobs/audio/` hold the Slurm scripts used on Khipu, including
+the partition, GPU allocation, memory and time limit of each run. They are the
+record of how each experiment was actually launched, not just how it could be,
+and they are named after the configuration they run, so a job, its configuration
+under `configs/` and its record under `results/` share the same name.
 
 Remember that the environment they activate needs `pip install -e .` once.
 

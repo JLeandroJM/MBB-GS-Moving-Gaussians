@@ -13,8 +13,8 @@ needs no GPU.
 ## Environment
 
 ```bash
-git clone TODO_REPO_URL
-cd MBB-GS
+git clone https://github.com/JLeandroJM/MBB-GS-Moving-Gaussians.git
+cd MBB-GS-Moving-Gaussians
 
 conda create -n mbb-gs python=3.10 -y
 conda activate mbb-gs

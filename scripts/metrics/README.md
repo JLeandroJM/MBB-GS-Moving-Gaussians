@@ -1,4 +1,4 @@
-# scripts/metricas
+# scripts/metrics
 
 Quality measurement over results that already exist.
 

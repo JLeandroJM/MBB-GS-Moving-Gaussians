@@ -1,4 +1,4 @@
-# scripts/compresion
+# scripts/compression
 
 Reducing model size after training: pruning Gaussians and quantizing
 coefficients to UINT16.

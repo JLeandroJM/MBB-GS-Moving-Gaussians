@@ -1,4 +1,4 @@
-# scripts/datos
+# scripts/data
 
 Input preparation: turning an MP4 into the PNG sequence the trainer consumes,
 and turning a folder of frames back into an MP4.

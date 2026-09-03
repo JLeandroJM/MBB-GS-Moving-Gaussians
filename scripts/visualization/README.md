@@ -1,4 +1,4 @@
-# scripts/visualizacion
+# scripts/visualization
 
 Figures for inspecting what the Gaussians do over time. These produce the
 material used in the thesis and the paper.

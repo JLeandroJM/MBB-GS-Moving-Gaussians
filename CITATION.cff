@@ -10,7 +10,10 @@ authors:
     given-names: "Mauro Ianfranco"
     affiliation: "Universidad de Ingenieria y Tecnologia (UTEC)"
 license: MIT
-repository-code: "TODO_REPO_URL"
+repository-code: "https://github.com/JLeandroJM/MBB-GS-Moving-Gaussians"
+url: "https://github.com/JLeandroJM/MBB-GS-Moving-Gaussians"
+version: "0.1.0"
+date-released: "2026-09-03"
 abstract: >-
   Multimedia representation with 2D Gaussian Splatting. Video is represented as
   a fixed population of 2D Gaussians whose attributes vary over time through

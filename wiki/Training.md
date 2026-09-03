@@ -187,7 +187,8 @@ frames on CPU trades VRAM for system RAM, so check which one actually ran out.
 
 ## Running on a cluster
 
-`jobs/` holds the Slurm scripts used on Khipu, with the exact partition, memory
-and time limits of each reported run. They activate a conda environment and call
+`jobs/video/` holds the Slurm scripts used on Khipu, with the exact partition,
+memory and time limits of each reported run; `jobs/audio/` holds the equivalent
+ones for the Gabor trainings. They activate a conda environment and call
 `scripts/train.py`. Remember that the environment needs `pip install -e .` once;
 see [Installation](Installation).

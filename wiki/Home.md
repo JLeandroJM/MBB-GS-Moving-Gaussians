@@ -4,7 +4,7 @@ MBB-GS represents multimedia signals with explicit primitives instead of frame
 or sample arrays. A video becomes a fixed population of 2D Gaussians whose
 attributes are polynomials in time; audio becomes a sum of Gabor atoms.
 
-The [README](TODO_REPO_URL) covers installation and a first experiment. These
+The [README](https://github.com/JLeandroJM/MBB-GS-Moving-Gaussians#readme) covers installation and a first experiment. These
 pages cover the rest.
 
 ## Model and rendering

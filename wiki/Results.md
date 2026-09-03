@@ -6,12 +6,17 @@ for arbitrary video, since results depend on content, duration, resolution,
 model capacity and training length.
 
 Each experiment's configuration is in `configs/`, mapped folder by folder in
-`configs/README.md`.
+`configs/README.md`. Where a run's metrics are committed in this repository, the
+section below names the record under `results/`; `results/README.md` lists what
+is covered and what is only on the Drive.
 
 ## Temporal basis: Chebyshev vs. monomial
 
-8000 Gaussians, 360 epochs, same degrees, same clip, same loss. The only
-difference is the basis.
+8000 Gaussians, 120 frames at 160x160, 360 epochs, degrees 30/20/15/8/4/4,
+`motion` loss. Everything is held fixed and the only difference is the basis.
+This is a deliberately small setting: it isolates the effect of the basis
+cheaply, so its absolute numbers are not comparable with the 720p results
+further down.
 
 | Basis | PSNR | PSNR min | SSIM | Temporal PSNR | PSNR std |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -19,10 +24,13 @@ difference is the basis.
 | **Chebyshev** | **29.95** | **27.70** | **0.926** | **34.04** | **1.09** |
 
 Nearly 7 dB, and less than half the variance across frames. This is the
-experiment that justifies making Chebyshev the main path: with degrees around
-100, a monomial basis is too ill-conditioned to fit.
+experiment that justifies making Chebyshev the main path. The gap already opens
+at degree 30; the production configurations use degrees around 100 for `mu` and
+80 for `opacity`, where a monomial basis is worse still, since its Vandermonde
+matrix on equally spaced nodes degrades with degree.
 
-Configs: `configs/video/exp1_temporal_basis/`
+Configs: `configs/video/exp1_temporal_basis/`. The records for this pair are
+not committed here; the full outputs are on the Drive.
 
 ## Loss ablation
 
@@ -43,7 +51,8 @@ The `l1_mse` and `combo` variants were part of the study but their runs did not
 finish because of failures in the execution environment, so they are not
 reported.
 
-Configs: `configs/video/exp3_loss/`
+Configs: `configs/video/exp3_loss/` · Records: `results/video/fase1_baseline`,
+`fase1_edge`, `fase1_temporal`, `fase1_motion`
 
 ## Aggregation across frames
 
@@ -51,17 +60,20 @@ Same setup, varying the exponent $q$ that combines per-frame errors.
 
 | q | PSNR | PSNR min | SSIM | LPIPS | Temporal PSNR |
 | ---: | ---: | ---: | ---: | ---: | ---: |
-| **1** | **33.24** | **30.32** | **0.965** | **0.048** | **36.90** |
+| **1** | **33.24** | **30.02** | **0.964** | **0.048** | **36.90** |
 | 2 | 29.77 | 27.43 | 0.942 | 0.099 | 33.55 |
 | 4 | 21.19 | 16.84 | 0.859 | 0.336 | 30.33 |
 | 8 | 14.70 | 13.37 | 0.517 | 0.821 | 30.03 |
 
-Quality falls monotonically. Concentrating updates on the hardest frames
+Every row is the run of the same name under `results/video/`, so the four are
+directly comparable. Quality falls monotonically. Concentrating updates on the
+hardest frames
 unbalances the gradients reaching the high-order temporal coefficients, which
 need evidence from many frames. The uniform average is the right choice, and
 `exponente_frame` should be left at 1.
 
-Configs: `configs/video/exp3_frame_aggregation/`
+Configs: `configs/video/exp3_frame_aggregation/` · Records:
+`results/video/fase2_qframe1`, `fase2_qframe2`, `fase2_qframe4`, `fase2_qframe8`
 
 ## Temporal interpolation
 
@@ -104,7 +116,9 @@ Then adaptive pruning at 20 % and UINT16 quantization:
 
 A 2.8× size reduction at a difference that is effectively invisible.
 
-Configs: `configs/video/scaling_epochs/`, `configs/video/final/`
+Configs: `configs/video/scaling_epochs/`, `configs/video/final/` · Records for
+the training-length series: `results/video/motion_150k_0400ep` through
+`motion_150k_1600ep`. The 750-frame reduction run itself is on the Drive.
 
 ## Gabor audio
 
@@ -124,12 +138,13 @@ Configs: `configs/video/scaling_epochs/`, `configs/video/final/`
 Gabor atoms are markedly better suited than plain Gaussians for signals with
 oscillation, which was the point of switching primitives.
 
-Configs: `configs/audio/gabor/`, `configs/audio/audio_only/`
+Configs: `configs/audio/gabor/`, `configs/audio/audio_only/` · Records for the
+ablations: `results/audio/`. The final 160k-atom run is on the Drive.
 
 ## Full outputs
 
 Rendered videos, checkpoints and complete per-experiment outputs are published
-separately: TODO_DRIVE_URL
+separately: https://drive.google.com/drive/folders/1N1kAQ0xZ2nKvp4y3VfURjVassB7x6bnB?usp=drive_link
 
 The lightweight records — `metricas.json`, `metricas_por_frame.csv`,
 `config_usada.json`, `info_clip.json` — are included in the repository, so the

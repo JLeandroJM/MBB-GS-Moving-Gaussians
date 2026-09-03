@@ -92,11 +92,12 @@ as a probe, not as stable training.
 Applies to the per-frame losses within an iteration. $q = 1$ averages them
 uniformly; larger $q$ shifts weight onto the hardest frames.
 
-The ablation says to leave it at 1:
+The ablation says to leave it at 1. The numbers are the `fase2_qframe*` records
+under `results/video/`:
 
 | q | PSNR | PSNR min | SSIM | LPIPS |
 | ---: | ---: | ---: | ---: | ---: |
-| 1 | 33.24 | 30.32 | 0.965 | 0.048 |
+| 1 | 33.24 | 30.02 | 0.964 | 0.048 |
 | 2 | 29.77 | 27.43 | 0.942 | 0.099 |
 | 4 | 21.19 | 16.84 | 0.859 | 0.336 |
 | 8 | 14.70 | 13.37 | 0.517 | 0.821 |

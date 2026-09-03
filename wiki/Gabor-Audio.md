@@ -14,6 +14,10 @@ approximating a waveform with non-oscillating bumps needs an unreasonable number
 of them. Working on a spectrogram also means dealing with phase separately, and
 phase is where the perceptual quality lives.
 
+That first attempt is kept as a baseline: `results/audio/gauss_pura_30s_mono_*`
+holds three runs of plain Gaussians fitted to the same 30 s waveform at 48k,
+250k and 500k primitives, next to the Gabor runs on the same signal.
+
 A Gabor atom is a Gaussian **modulated by a sinusoid**, so oscillation is built
 into the primitive:
 

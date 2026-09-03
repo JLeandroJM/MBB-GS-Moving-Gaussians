@@ -1,4 +1,4 @@
-# scripts/reconstruccion
+# scripts/reconstruction
 
 Evaluating a trained model from its checkpoint. These train nothing: they load
 coefficients and rasterise.
