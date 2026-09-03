@@ -150,104 +150,88 @@ about 236 MB to 85 MB, at roughly 63 dB PSNR against the full reconstruction: a
 
 ## Installation
 
-### Hardware requirements
+### Requirements
 
-- CUDA-ready NVIDIA GPU. 8 GB of VRAM is enough for 720p with 100k Gaussians in
-  streaming mode
-- The reported runs used 32–64 GB of system RAM, since frames are held on CPU
-- No GPU is needed for the tests, checkpoint inspection or metrics on existing
-  frames
+- Python 3.10
+- NVIDIA GPU for CUDA training
+- CUDA Toolkit compatible with the installed PyTorch build
+- C++ compiler compatible with PyTorch
+- FFmpeg and FFprobe on `PATH`
+- Conda
+- 7-Zip is optional and is only used for the final lossless package archive
 
-### Software requirements
+The current default setup targets PyTorch with CUDA 12.6.
 
-- Python 3.10 or newer
-- PyTorch with CUDA, and a C++ compiler compatible with that build
-- CUDA Toolkit matching the PyTorch build — 12.6 for the reported runs
-- FFmpeg and FFprobe on `PATH`, for video and audio extraction
-- 7-Zip, optional, only to losslessly compress the final packaged models
+### Windows
 
-### Setup
+The recommended installation path is the automated PowerShell installer:
 
-```bash
+```powershell
 git clone https://github.com/JLeandroJM/MBB-GS-Moving-Gaussians.git
 cd MBB-GS-Moving-Gaussians
-
-conda create -n mbb-gs python=3.10 -y
-conda activate mbb-gs
-
-# For a GPU environment, install PyTorch from the CUDA index first
-pip install torch --index-url https://download.pytorch.org/whl/cu126
-
-pip install -r requirements.txt
-pip install -e .
+powershell -ExecutionPolicy Bypass -File .\setup.ps1
 ```
 
-**`pip install -e .` is not optional.** The scripts import `gs2d_video` and
-`gs2d_gabor` as installed packages and do not patch `sys.path`. Without it every
-script fails with `ModuleNotFoundError: No module named 'gs2d_video'`.
+`setup.ps1` creates or reuses the Conda environment, installs the Python dependencies, detects CUDA and Visual Studio C++, initializes MSVC x64, builds both CUDA extensions, generates the synthetic smoke input and runs the environment doctor and tests.
 
-Check that PyTorch sees the GPU before compiling anything:
+A separate Visual Studio Developer Command Prompt is not required.
+
+### Linux
+
+The repository also includes a Bash installer:
 
 ```bash
-python -c "import torch; print(torch.__version__, torch.version.cuda, torch.cuda.is_available())"
+chmod +x setup.sh
+./setup.sh
 ```
 
-### CUDA extensions
+The Linux script checks Conda, CUDA, `g++`, FFmpeg and FFprobe, then builds the CUDA extensions and runs the same validation flow. CUDA and compiler availability still depend on the host Linux installation.
 
-Compiled binaries are tied to a specific Python ABI and CUDA build, so they are
-not versioned and must be built in each environment:
+### Validate an existing environment
 
 ```bash
-# video rasteriser — required for training
-cd cuda/raster_cuda && python setup.py build_ext --inplace && cd ../..
-
-# Gabor audio — only needed for the audio extension
-cd cuda/gabor_audio_cuda && python setup.py build_ext --inplace && cd ../..
+python scripts/doctor.py --tests
 ```
 
-Verify:
+The doctor reports Python, PyTorch, CUDA, GPU, NVCC, compiler availability, FFmpeg, both CUDA extensions, the smoke input and the test suite.
 
-```bash
-python -c "import torch, sys; sys.path.insert(0, 'cuda/raster_cuda'); import raster_cuda; print('raster_cuda OK')"
-```
+Manual installation and troubleshooting details are available in [docs/INSTALLATION.md](docs/INSTALLATION.md) and [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md).
 
-Import `torch` before the extension — on Windows that is what loads the DLLs it
-depends on. See [Installation](wiki/Installation.md) for architecture flags,
-Windows notes and the `RASTER_BATCH_SIZE` build option.
-
-The exact environment used on the Khipu cluster to produce the reported numbers
-is frozen in `requirements-tesis-khipu.txt`.
 
 ## Quick start
 
+The fastest way to validate the complete repository does not require any external video. The project can generate a two-second synthetic audiovisual input locally:
+
 ```bash
-# 1. Turn an MP4 into the PNG sequence the trainer expects
-python scripts/data/extraer_clips_720p.py \
-    --video data/videos/mi_video.mp4 --nombre_clip mi_clip \
-    --inicio_seg 10 --duracion_seg 20 --H 720 --W 1280
-
-# 2. Train
-python scripts/train.py --config configs/video/final/ganador_motion_200k_1200ep.json
-
-# 3. Render the clip back from the checkpoint
-python scripts/reconstruction/regenerar_clip_desde_checkpoint_streaming.py \
-    --checkpoint outputs/mi_experimento/checkpoints/checkpoint_final.pt \
-    --salida outputs/mi_experimento/frames_renderizados \
-    --device cuda --crear_video --fps 30
+python scripts/generate_smoke_media.py --force
+python scripts/doctor.py --tests
+python scripts/pipeline/run_pipeline_video_audio.py --config configs/examples/smoke_20frames/pipeline.json
 ```
 
-Everything lands in `outputs/<nombre_experimento>/`:
+The smoke experiment uses 20 frames, one video epoch, one audio epoch, adaptive pruning at 5% and UINT16 SAFE quantization. It is intended to verify the complete infrastructure, not model quality.
 
+The final audiovisual reconstruction is written under:
+
+```text
+outputs/AV_PIPELINE/smoke_20frames/final/
 ```
-outputs/<nombre_experimento>/
-├── frames_renderizados/     rendered frames, post-pruning
-├── checkpoints/             checkpoint_final.pt, modelo_pruneado.pt
-├── logs/                    log_entrenamiento.csv, loss curves, visualisations
-├── metricas.json            aggregates and per-frame, split pre/post pruning
-├── metricas_por_frame.csv   one row per frame
-├── config_usada.json        verbatim copy of the configuration that ran
-└── info_clip.json           clip metadata: frames, resolution, fps, seed
+
+Each pipeline run also stores:
+
+```text
+environment.json
+environment.txt
+resumen_pipeline.json
+resumen_pipeline.txt
+runtime_configs/pipeline_master.json
+runtime_configs/video_runtime.json
+runtime_configs/audio_runtime.json
 ```
+
+The environment metadata records the Git commit, dirty state, Python, PyTorch, CUDA, GPU, NVCC, FFmpeg and the SHA256 of the master pipeline configuration.
+
+For a real experiment, start from `configs/templates/` or copy `configs/examples/smoke_20frames/` and replace the source, duration, resolution and model settings. See [docs/CONFIGURATION.md](docs/CONFIGURATION.md).
+
 
 ## Usage
 
@@ -259,8 +243,10 @@ python scripts/train.py --config <config.json> [--nombre-experimento NAME]
 
 `--nombre-experimento` overrides the name in the config, which is useful when
 launching the same configuration several times. By default a run refuses to
-start if its output folder already exists; set `sobreescribir_salida` to reuse
-it.
+start if its output folder already exists. `sobreescribir_salida: true` allows
+the folder to be reused; add `limpiar_salida: true` to delete the previous run
+before writing the new one. The audiovisual pipeline enables both options for
+its generated video and audio runtime configurations.
 
 <details>
 <summary><b>Configuration reference</b> — click to expand</summary>
@@ -277,7 +263,8 @@ reference is in [Training](wiki/Training.md).
 | `max_frames` | truncate the clip |
 | `device` | `cuda`, `cpu` or `mps`; training requires CUDA |
 | `seed` | seeds torch and the model's own generator |
-| `sobreescribir_salida` | reuse an existing output folder |
+| `sobreescribir_salida` | allow an existing output folder |
+| `limpiar_salida` | delete the previous experiment output before starting |
 
 **Model**
 
@@ -406,7 +393,7 @@ both trainings, pruning, quantization, reconstruction and mux:
 
 ```bash
 python scripts/pipeline/run_pipeline_video_audio.py \
-    --config configs/audiovisual/thriller_10s_1ep/pipeline.json
+    --config configs/examples/smoke_20frames/pipeline.json
 ```
 
 See [Audiovisual Pipeline](wiki/Audiovisual-Pipeline.md).
@@ -429,15 +416,18 @@ src/gs2d_video/      video model: temporal bases, Gaussian model, losses,
 src/gs2d_gabor/      audio model: Gabor atoms, losses, CUDA rendering
 cuda/                CUDA extensions, compiled per environment
 scripts/             command line entry points, grouped by role
-configs/   video/    one JSON per experiment, grouped by paper experiment
+configs/   video/    paper and development experiments
            audio/
            audiovisual/
+           examples/ validated runnable examples
+           templates/ starting templates for new experiments
 jobs/      video/    Slurm scripts used on the Khipu HPC cluster
            audio/
 results/   video/    lightweight record of every committed run
            audio/
-tests/               test suite
-wiki/                documentation source
+tests/               automated regression test suite
+docs/                operational installation, configuration and workflow docs
+wiki/                scientific and method documentation
 ```
 
 `configs/`, `jobs/` and `results/` use the same `video/` and `audio/` split, and
@@ -479,24 +469,25 @@ exactly. See [Reproducibility](wiki/Reproducibility.md).
 ## Tests
 
 ```bash
-pytest -q
+python -m pytest -q
 ```
 
-Eight tests, CPU only, no GPU and no trained model required. They cover the
-Chebyshev and monomial bases, model evaluation and metadata, checkpoint loading
-for both bases, the temporal basis used when pruning, and the analytic Gabor
-gradients against PyTorch autograd.
+The current suite contains 13 CPU tests. It covers the Chebyshev and monomial bases, model evaluation and metadata, checkpoint loading, pruning basis handling, analytic Gabor gradients, PSNR aggregation including identical-frame `inf` cases, and repository data-path resolution.
 
-On a machine without the CUDA extension compiled, the video scripts fail with
-`ModuleNotFoundError: No module named 'raster_cuda'`. That is expected, not a
-bug — see [Troubleshooting](wiki/Troubleshooting.md).
+The test suite itself does not require a trained model or GPU. Full CUDA runtime validation is performed by `scripts/doctor.py` and the synthetic audiovisual smoke pipeline.
+
+```bash
+python scripts/doctor.py --tests
+```
+
 
 ## Data and heavy results
 
-The source videos and audio are commercial recordings and are **not**
-redistributed here. Each configuration records the source file, the start point
-and the duration, so the clips can be regenerated from your own copy with
-`scripts/data/`.
+The source videos and audio used for the thesis experiments are commercial
+recordings and are **not** redistributed here. Each configuration records the
+source file, start point and duration. For repository validation, however,
+`scripts/generate_smoke_media.py` generates a synthetic audiovisual MP4 locally,
+so the smoke test does not depend on private or copyrighted input media.
 
 Rendered videos, reconstructed audio, checkpoints and the full per-experiment
 outputs are published separately:
@@ -509,11 +500,20 @@ so those numbers can be checked without retraining anything.
 
 ## Documentation
 
-The [wiki](wiki/Home.md) covers the model and temporal representation, the CUDA
-rasteriser, installation, data preparation, training and the configuration
-reference, loss functions, reconstruction and interpolation, metrics, pruning
-and quantisation, the Gabor audio extension, the audiovisual pipeline, results,
-reproducibility and troubleshooting.
+The repository has two complementary documentation layers.
+
+Operational documentation:
+
+- [Installation](docs/INSTALLATION.md)
+- [Configuration](docs/CONFIGURATION.md)
+- [Commands](docs/COMMANDS.md)
+- [Audiovisual pipeline](docs/PIPELINE.md)
+- [Compression](docs/COMPRESSION.md)
+- [Visualizations](docs/VISUALIZATIONS.md)
+- [Troubleshooting](docs/TROUBLESHOOTING.md)
+
+The [wiki](wiki/Home.md) contains the scientific and methodological documentation: temporal representation, CUDA rasterization, training, losses, reconstruction and interpolation, metrics, pruning, Gabor audio, results and reproducibility.
+
 
 ## Citation
 

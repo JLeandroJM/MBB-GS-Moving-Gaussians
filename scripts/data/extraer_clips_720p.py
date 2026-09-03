@@ -1,11 +1,11 @@
 """
-Extrae frames de video/video.mp4 como PNGs 720p en data/clips/<nombre_clip>/.
+Extrae frames de data/videos/video.mp4 como PNGs en data/clips/<nombre_clip>/.
 
 Uso tipico (una sola vez antes de la ablacion):
     python scripts/data/extraer_clips_720p.py
 
 Defaults pensados para el estudio de ablacion de loss:
-    - video de entrada : video/video.mp4
+    - video de entrada : data/videos/video.mp4
     - clip de salida   : data/clips/test30s_clips/
     - duracion         : 30 segundos
     - resolucion       : 1280x720 (720p, conserva aspect 16:9)
@@ -26,7 +26,6 @@ Importante:
       (regla estandar OpenCV).
 """
 import argparse
-import os
 import sys
 from pathlib import Path
 
@@ -34,7 +33,7 @@ import cv2
 
 
 RAIZ = Path(__file__).resolve().parents[2]
-RUTA_VIDEO_DEFAULT = RAIZ / "video" / "video.mp4"
+RUTA_VIDEO_DEFAULT = RAIZ / "data" / "videos" / "video.mp4"
 RUTA_CLIPS_DEFAULT = RAIZ / "data" / "clips"
 
 

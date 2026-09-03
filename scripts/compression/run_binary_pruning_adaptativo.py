@@ -595,6 +595,11 @@ def main():
     N, n_frames = checkpoint_info(checkpoint)
 
     work_dir = exp / "binary_pruning"
+
+    if args.force and work_dir.exists():
+        print(f"[FORCE] Limpiando resultados anteriores: {work_dir}")
+        shutil.rmtree(work_dir)
+
     ids_dir = work_dir / "ids"
     tests_dir = work_dir / "tests"
     metrics_dir = work_dir / "metrics"

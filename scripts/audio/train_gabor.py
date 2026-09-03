@@ -172,6 +172,11 @@ def main():
         raise FileExistsError(
             f"La carpeta ya existe: {salida}. Usa sobreescribir_salida=true o cambia el nombre."
         )
+
+    if salida.exists() and sobreescribir and bool(config.get("limpiar_salida", False)):
+        print(f"[audio] limpiando salida anterior: {salida}", flush=True)
+        shutil.rmtree(salida)
+
     (salida / "checkpoints").mkdir(parents=True, exist_ok=True)
 
     with open(salida / "config_usada.json", "w", encoding="utf-8") as f:
