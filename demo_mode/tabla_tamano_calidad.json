@@ -1,0 +1,257 @@
+[
+  {
+    "bytes": 4181784,
+    "grados": {
+      "color": 30,
+      "depth": 4,
+      "mu": 100,
+      "opacity": 80,
+      "scale": 12,
+      "theta": 6
+    },
+    "mb": 4.181784,
+    "nombre": "topk_5000",
+    "psnr_cuda": 12.590692079919839,
+    "psnr_original": 12.568454260132029,
+    "seg": 2.452785015106201,
+    "top_k": 5000
+  },
+  {
+    "bytes": 8361796,
+    "grados": {
+      "color": 30,
+      "depth": 4,
+      "mu": 100,
+      "opacity": 80,
+      "scale": 12,
+      "theta": 6
+    },
+    "mb": 8.361796,
+    "nombre": "topk_10000",
+    "psnr_cuda": 13.734400196603948,
+    "psnr_original": 13.711704154585286,
+    "seg": 3.4680821895599365,
+    "top_k": 10000
+  },
+  {
+    "bytes": 16721800,
+    "grados": {
+      "color": 30,
+      "depth": 4,
+      "mu": 100,
+      "opacity": 80,
+      "scale": 12,
+      "theta": 6
+    },
+    "mb": 16.7218,
+    "nombre": "topk_20000",
+    "psnr_cuda": 15.766818504442206,
+    "psnr_original": 15.747311764392068,
+    "seg": 5.507536172866821,
+    "top_k": 20000
+  },
+  {
+    "bytes": 25081804,
+    "grados": {
+      "color": 30,
+      "depth": 4,
+      "mu": 100,
+      "opacity": 80,
+      "scale": 12,
+      "theta": 6
+    },
+    "mb": 25.081804,
+    "nombre": "topk_30000",
+    "psnr_cuda": 17.47491541502421,
+    "psnr_original": 17.457563909469098,
+    "seg": 7.493259906768799,
+    "top_k": 30000
+  },
+  {
+    "bytes": 41801804,
+    "grados": {
+      "color": 30,
+      "depth": 4,
+      "mu": 100,
+      "opacity": 80,
+      "scale": 12,
+      "theta": 6
+    },
+    "mb": 41.801804,
+    "nombre": "topk_50000",
+    "psnr_cuda": 20.22067659424732,
+    "psnr_original": 20.194563499096155,
+    "seg": 11.406168937683105,
+    "top_k": 50000
+  },
+  {
+    "bytes": 125401820,
+    "grados": {
+      "color": 30,
+      "depth": 4,
+      "mu": 100,
+      "opacity": 80,
+      "scale": 12,
+      "theta": 6
+    },
+    "mb": 125.40182,
+    "nombre": "topk_150000",
+    "psnr_cuda": 54.63911045611448,
+    "psnr_original": 39.519956770050364,
+    "seg": 29.77400302886963,
+    "top_k": 150000
+  },
+  {
+    "bytes": 22681800,
+    "grados": {
+      "color": 30,
+      "depth": 4,
+      "mu": 80,
+      "opacity": 80,
+      "scale": 12,
+      "theta": 6
+    },
+    "mb": 22.6818,
+    "nombre": "g_mu=80",
+    "psnr_cuda": 17.44314351350854,
+    "psnr_original": 17.42672409588457,
+    "seg": 7.567302942276001,
+    "top_k": 30000
+  },
+  {
+    "bytes": 20281800,
+    "grados": {
+      "color": 30,
+      "depth": 4,
+      "mu": 60,
+      "opacity": 80,
+      "scale": 12,
+      "theta": 6
+    },
+    "mb": 20.2818,
+    "nombre": "g_mu=60",
+    "psnr_cuda": 17.366567520686655,
+    "psnr_original": 17.349848966143174,
+    "seg": 7.480986833572388,
+    "top_k": 30000
+  },
+  {
+    "bytes": 17881800,
+    "grados": {
+      "color": 30,
+      "depth": 4,
+      "mu": 40,
+      "opacity": 80,
+      "scale": 12,
+      "theta": 6
+    },
+    "mb": 17.8818,
+    "nombre": "g_mu=40",
+    "psnr_cuda": 17.301937271862336,
+    "psnr_original": 17.28539707021352,
+    "seg": 7.485220909118652,
+    "top_k": 30000
+  },
+  {
+    "bytes": 18481800,
+    "grados": {
+      "color": 30,
+      "depth": 4,
+      "mu": 60,
+      "opacity": 50,
+      "scale": 12,
+      "theta": 6
+    },
+    "mb": 18.4818,
+    "nombre": "g_mu=60,op=50",
+    "psnr_cuda": 16.979509289666645,
+    "psnr_original": 16.954833064722553,
+    "seg": 7.480700969696045,
+    "top_k": 30000
+  },
+  {
+    "bytes": 16681800,
+    "grados": {
+      "color": 20,
+      "depth": 4,
+      "mu": 60,
+      "opacity": 50,
+      "scale": 12,
+      "theta": 6
+    },
+    "mb": 16.6818,
+    "nombre": "g_mu=60,op=50,col=20",
+    "psnr_cuda": 16.992504824581165,
+    "psnr_original": 16.967877590216286,
+    "seg": 7.474147081375122,
+    "top_k": 30000
+  },
+  {
+    "bytes": 33801800,
+    "grados": {
+      "color": 30,
+      "depth": 4,
+      "mu": 60,
+      "opacity": 80,
+      "scale": 12,
+      "theta": 6
+    },
+    "mb": 33.8018,
+    "nombre": "mix_50000_mu60",
+    "psnr_cuda": 19.95571572643857,
+    "psnr_original": 19.93069005146864,
+    "seg": 11.443622827529907,
+    "top_k": 50000
+  },
+  {
+    "bytes": 30801800,
+    "grados": {
+      "color": 30,
+      "depth": 4,
+      "mu": 60,
+      "opacity": 50,
+      "scale": 12,
+      "theta": 6
+    },
+    "mb": 30.8018,
+    "nombre": "mix_50000_mu60_opacity50",
+    "psnr_cuda": 19.54109121640188,
+    "psnr_original": 19.507036537090034,
+    "seg": 11.386588335037231,
+    "top_k": 50000
+  },
+  {
+    "bytes": 28641800,
+    "grados": {
+      "color": 30,
+      "depth": 4,
+      "mu": 70,
+      "opacity": 80,
+      "scale": 12,
+      "theta": 6
+    },
+    "mb": 28.6418,
+    "nombre": "mix_40000_mu70",
+    "psnr_cuda": 18.79906404672793,
+    "psnr_original": 18.78029958954539,
+    "seg": 9.504477977752686,
+    "top_k": 40000
+  },
+  {
+    "bytes": 33361804,
+    "grados": {
+      "color": 30,
+      "depth": 4,
+      "mu": 50,
+      "opacity": 40,
+      "scale": 12,
+      "theta": 6
+    },
+    "mb": 33.361804,
+    "nombre": "mix_60000_mu50_opacity40",
+    "psnr_cuda": 20.147787624217333,
+    "psnr_original": 20.10249252631993,
+    "seg": 13.376099109649658,
+    "top_k": 60000
+  }
+]

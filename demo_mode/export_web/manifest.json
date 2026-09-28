@@ -1,0 +1,28 @@
+{
+  "formato": "MBBGSW01",
+  "modelos": [
+    {
+      "alto": 720,
+      "ancho": 1080,
+      "archivo": "musical-20s.bin",
+      "bytes": 22801804,
+      "duracion_s": 20.0,
+      "fps": 24.0,
+      "grados": {
+        "color": 5,
+        "depth": 2,
+        "mu": 12,
+        "opacity": 10,
+        "scale": 4,
+        "theta": 3
+      },
+      "id": "musical-20s",
+      "miniatura": "musical-20s.png",
+      "n_frames": 480,
+      "n_gaussianas": 150000,
+      "sha256_16": "7c6bbeb9329a2652",
+      "titulo": "Musical, 20 s"
+    }
+  ],
+  "version": 1
+}

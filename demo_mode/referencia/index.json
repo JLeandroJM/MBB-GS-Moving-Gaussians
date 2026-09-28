@@ -1,0 +1,26 @@
+{
+  "alto": 720,
+  "ancho": 1080,
+  "casos": [
+    {
+      "json": "frame0000.json",
+      "nombre": "frame0000",
+      "png": "frame0000.png",
+      "tau": -1.0
+    },
+    {
+      "json": "frame0240.json",
+      "nombre": "frame0240",
+      "png": "frame0240.png",
+      "tau": 0.0020876826722338038
+    },
+    {
+      "json": "entre_frames_240_241.json",
+      "nombre": "entre_frames_240_241",
+      "png": "entre_frames_240_241.png",
+      "tau": 0.0041753653444676075
+    }
+  ],
+  "modelo": "musical-20s.bin",
+  "n_gaussianas": 150000
+}
